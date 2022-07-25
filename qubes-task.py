@@ -22,6 +22,36 @@
 
 """Tool for managing Tasks."""
 
+import argparse
+import collections
+import configparser
+import datetime
+import enum
+import fcntl
+import fnmatch
+import functools
+import glob
+import itertools
+import operator
+import os
+import re
+import rpm
+import subprocess
+import sys
+import typing
+import qubesadmin
+
+from qubesadmin.tools.qvm_template import is_match_spec
+from qubesadmin.tools.qvm_template import qrexec_popen
+from qubesadmin.tools.qvm_template import qubes_release
+from qubesadmin.tools.qvm_template import Template as Package
+
+DATE_FMT = '%Y-%m-%d %H:%M:%S'
+LOCK_FILE = '/var/tmp/qvm-task.lck'
+UPDATEVM = str('global UpdateVM')
+PACKAGE_NAME_PREFIX = '3isec-qubes-'
+REPO_FILE = ['/etc/yum.repos.d/3isec-dom0.repo']
+
 
 
 
