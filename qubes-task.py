@@ -235,7 +235,27 @@ def qrexec_repoquery(
             raise ConnectionError("qrexec call 'qubes.TemplateSearch' failed:"
                                    " unexpected data format.")
     return result
-1G
+
+
+def locked(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        with open(LOCK_FILE, 'w', encoding='ascii') as lock:
+            try:
+                fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except OSError:
+                raise AlreadyRunning(
+                    f"Cannot get lock on {LOCK_FILE}. Perhaps another instance "
+                    f"of qvm-task is running?")
+            try:
+                return func(*args, **kwargs)
+            finally:
+                os.remove(LOCK_FILE)
+    return wrapper
+
+
+@locked
+
 
 
 
