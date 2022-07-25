@@ -257,17 +257,104 @@ def locked(func):
 @locked
 
 
+def install(args: argparse.Namespace) -> None:
+    pkgs_to_install = [PACKAGE_NAME_PREFIX + pkg for pkg in args.pkgs ]
+    install_list = " ".join(pkgs_to_install)
+    update_cmd = "sudo qubes-dom0-update "
+    try:
+        child = subprocess.Popen(update_cmd + install_list,shell=True)
+        output = child.communicate()[0]
+    except Exception as e:  # pylint: disable=broad-except
+        print('ERROR: ' + str(e), file=sys.stderr)
+        return 1
+
+    return 0
 
 
 
 
 
+def list_tasks(args: argparse.Namespace,
+                   app: qubesadmin.app.QubesBase, command: str) -> None:
+    """Command that lists tasks.
 
 
+def search(args: argparse.Namespace, app: qubesadmin.app.QubesBase) -> None:
+    """Command that searches task details for given patterns.
 
+    :param args: Arguments received by the application.
+    :param app: Qubes application object
+    """
+    # Search in both installed and available tasks
+    query_res = qrexec_repoquery(args, app)
 
+    # pylint: disable=invalid-name
+    WEIGHT_NAME_EXACT = 1 << 4
+    WEIGHT_NAME = 1 << 3
+    WEIGHT_SUMMARY = 1 << 2
+    WEIGHT_DESCRIPTION = 1 << 1
+    WEIGHT_URL = 1 << 0
 
+    WEIGHT_TO_FIELD = [
+        (WEIGHT_NAME_EXACT, 'Name'),
+        (WEIGHT_NAME, 'Name'),
+        (WEIGHT_SUMMARY, 'Summary'),
+        (WEIGHT_DESCRIPTION, 'Description'),
+        (WEIGHT_URL, 'URL')]
 
+    search_res_by_idx: \
+        typing.Dict[int, typing.List[typing.Tuple[int, str, bool]]] = \
+        collections.defaultdict(list)
+    for keyword in args.tasks:
+        for idx, entry in enumerate(query_res):
+            needle_types = \
+                [(entry.name, WEIGHT_NAME), (entry.summary, WEIGHT_SUMMARY)]
+            if args.all:
+                needle_types += [(entry.description, WEIGHT_DESCRIPTION),
+                                 (entry.url, WEIGHT_URL)]
+            for key, weight in needle_types:
+                if fnmatch.fnmatch(key, '*' + keyword + '*'):
+                    exact = keyword == key
+                    if exact and weight == WEIGHT_NAME:
+                        weight = WEIGHT_NAME_EXACT
+                    search_res_by_idx[idx].append((weight, keyword, exact))
+
+    if not args.all:
+        keywords = set(args.tasks)
+        idxs = list(search_res_by_idx.keys())
+        for idx in idxs:
+            if keywords != set(x[1] for x in search_res_by_idx[idx]):
+                del search_res_by_idx[idx]
+
+    def key_func(x):
+        # ORDER BY weight DESC, list_of_needles ASC, name ASC
+        idx, needles = x
+        weight = sum(t[0] for t in needles)
+        name = query_res[idx][0]
+        return -weight, needles, name
+
+    search_res = sorted(search_res_by_idx.items(), key=key_func)
+
+    def gen_header(needles):
+        fields = []
+        weight_types = set(x[0] for x in needles)
+        for weight, field in WEIGHT_TO_FIELD:
+            if weight in weight_types:
+                fields.append(field)
+        exact = all(x[-1] for x in needles)
+        match = 'Exactly Matched' if exact else 'Matched'
+        keywords = sorted(list(set(x[1] for x in needles)))
+        return ' & '.join(fields) + ' ' + match + ': ' + ', '.join(keywords)
+
+    last_header = ''
+    for idx, needles in search_res:
+        # Print headers
+        cur_header = gen_header(needles)
+        if last_header != cur_header:
+            last_header = cur_header
+            # XXX: The style is different from that of DNF
+            print('===', cur_header, '===')
+        print(query_res[idx].name, ':', query_res[idx].summary)
 
 
 def main(args: typing.Optional[typing.Sequence[str]] = None,
@@ -309,26 +396,6 @@ def main(args: typing.Optional[typing.Sequence[str]] = None,
         return 1
 
     return 0
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 if __name__ == '__main__':
