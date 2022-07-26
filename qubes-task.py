@@ -271,12 +271,87 @@ def install(args: argparse.Namespace) -> None:
     return 0
 
 
-
-
-
 def list_tasks(args: argparse.Namespace,
                    app: qubesadmin.app.QubesBase, command: str) -> None:
     """Command that lists tasks.
+
+    :param args: Arguments received by the application.
+    :param app: Qubes application object
+    :param command: If set to ``list``, display a listing similar to ``dnf
+        list``. If set to ``info``, display detailed template information
+        similar to ``dnf info``. Otherwise, an ``AssertionError`` is raised.
+    """
+    task_list = []
+
+    def append_list(data, status, install_time=None):
+        _ = install_time # unused
+        task_list.append((status, data.name))
+
+    def append_info(data, status, install_time=None):
+        task_list.append((status, data, install_time))
+
+    def list_to_human_output(tpls):
+        outputs = []
+        for status, grp in itertools.groupby(tpls, lambda x: x[0]):
+            def convert(row):
+                return row[1:]
+            outputs.append((status, list(map(convert, grp))))
+        return outputs
+
+    def info_to_human_output(tpls):
+        outputs = []
+        for status, grp in itertools.groupby(tpls, lambda x: x[0]):
+            output = []
+            for _, data, install_time in grp:
+                output.append(('Name', ':', data.name))
+                output.append(('Summary', ':', data.summary))
+                # Only show "Description" for the first line
+                title = 'Description'
+                for line in data.description.splitlines():
+                    output.append((title, ':', line))
+                    title = ''
+                output.append((' ', ' ', ' ')) # empty line
+            outputs.append((status, output))
+        return outputs
+
+    if command == 'list':
+        append = append_list
+    elif command == 'info':
+        append = append_info
+    else:
+        assert False, 'Unknown command'
+
+    def check_append(name, evr):
+        return not args.tasks or \
+            any(is_match_spec(name, *evr, spec)[0]
+                for spec in args.tasks)
+
+    args.all = True
+
+    if args.all :
+        if args.tasks:
+            query_res_set: typing.Set[Package] = set()
+            for spec in args.tasks:
+                query_res_set |= set(qrexec_repoquery(
+                    args, app, PACKAGE_NAME_PREFIX + spec))
+            query_res = list(query_res_set)
+        else:
+            query_res = qrexec_repoquery(args, app)
+    if args.all:
+        # Spec should already be checked by repoquery
+        for data in query_res:
+            append(data, TaskState.AVAILABLE)
+        query_res = qrexec_repoquery(args, app)
+    if len(task_list) == 0:
+        parser.error('No matching tasks to list')
+    else:
+        if command == 'info':
+            task_list = info_to_human_output(task_list)
+        elif command == 'list':
+            task_list = list_to_human_output(task_list)
+        for status, grp in task_list:
+            print(status.title())
+            qubesadmin.tools.print_table(grp)
 
 
 def search(args: argparse.Namespace, app: qubesadmin.app.QubesBase) -> None:
