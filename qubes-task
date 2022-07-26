@@ -1,0 +1,5 @@
+#!/usr/bin/python3
+from qubesadmin.tools.qubes_task import main
+import sys
+if __name__ == '__main__':
+	sys.exit(main())
