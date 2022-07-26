@@ -79,6 +79,8 @@ def get_parser() -> argparse.ArgumentParser:
         help_str='List Tasks.')
     parser_info = parser_add_command('info',
         help_str='Display details about Task.')
+    parser_dict = parser_add_command('dict',
+        help_str='Return dict of details about Task.')
     parser_install.add_argument('pkgs', nargs='*', metavar='PATTERN')
     for parser_x in [parser_list, parser_info, parser_dict]:
         parser_x.add_argument('--all', action='store_true',
@@ -314,9 +316,21 @@ def list_tasks(args: argparse.Namespace,
             outputs.append((status, output))
         return outputs
 
+    def info_to_dict(pkgs):
+        outputs = {}
+        for status, grp in itertools.groupby(pkgs, lambda x: x[0]):
+            for _, data, install_time in grp:
+                outputs[data.name]  = {
+                    'summary' : data.summary ,
+                    'description' : data.description
+                    }
+        return outputs
+
     if command == 'list':
         append = append_list
     elif command == 'info':
+        append = append_info
+    elif command == 'dict':
         append = append_info
     else:
         assert False, 'Unknown command'
@@ -344,6 +358,9 @@ def list_tasks(args: argparse.Namespace,
         query_res = qrexec_repoquery(args, app)
     if len(task_list) == 0:
         parser.error('No matching tasks to list')
+    elif command == 'dict':
+            task_list = info_to_dict(task_list)
+            return task_list
     else:
         if command == 'info':
             task_list = info_to_human_output(task_list)
@@ -461,6 +478,8 @@ def main(args: typing.Optional[typing.Sequence[str]] = None,
             list_tasks(p_args, app, 'list')
         elif p_args.command == 'info':
             list_tasks(p_args, app, 'info')
+        elif p_args.command == 'dict':
+            list_tasks(p_args, app, 'dict')
         elif p_args.command == 'search':
             search(p_args, app)
         else:
