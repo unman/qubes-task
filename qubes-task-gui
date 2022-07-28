@@ -1,0 +1,111 @@
+#!/usr/bin/python3
+# qubes-task-gui
+import subprocess
+import sys
+
+from PyQt5 import QtWidgets, QtGui, uic
+from PyQt5.QtWidgets import (
+    QWidget, QLineEdit, QLabel, QPushButton, QScrollArea, QMainWindow,
+    QApplication, QHBoxLayout, QVBoxLayout, QSpacerItem, QSizePolicy,
+    QButtonGroup)
+from PyQt5.QtCore import QObject, Qt, pyqtSignal, QProcess
+from PyQt5.QtGui import QPainter, QFont, QColor, QPen
+from row import TaskRowWidget
+from qubesadmin.tools.qubes_task import *
+from qubesadmin.tools.qvm_template import Template as Task
+
+appl = qubesadmin.Qubes()
+args=None
+p_args, args = parser.parse_known_args(args)
+p_args = parser.parse_args(args, p_args)
+p_args.repo_files = REPO_FILE
+p_args.updatevm = appl.updatevm
+command = 'dict'
+outputs={}
+outputs=list_tasks(p_args ,appl, 'dict')
+widget_names =  outputs.keys()
+
+
+class MainWindow(QMainWindow):
+
+
+    def __init__(self, command='dict', *args, **kwargs):
+        super().__init__()
+
+        self.tasks = QWidget()  # Tasks container widget.
+        self.tasksLayout = QVBoxLayout()   # Tasks container layout.
+        self.taskGroup = QButtonGroup()
+        self.taskGroup.setExclusive(False)
+
+        self.widgets = []
+
+        for name in widget_names:
+            detail = outputs[name]['summary']
+            item = TaskRowWidget(self, name, detail)
+            self.tasksLayout.addWidget(item)
+            self.widgets.append(item)
+
+        spacer = QSpacerItem(1, 1, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.tasksLayout.addItem(spacer)
+        self.tasks.setLayout(self.tasksLayout)
+        self.lbl = QLabel("""HERE will go full description, in a multiline format\nThat was a specific new line.
+This is an implicit line.
+This is an implicit line.
+This is an implicit line.
+This is an implicit line.
+This is an implicit line.
+This is an implicit line.
+This is an implicit line.
+This is an implicit line.
+And this is another""")
+        self.lbl.setAlignment(Qt.AlignTop)
+        # Scroll Area Properties.
+        self.scroll = QScrollArea()
+        self.scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.scroll.setWidgetResizable(True)
+        self.scroll.setWidget(self.tasks)
+
+        self.scroll2 = QScrollArea()
+        self.scroll2.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        self.scroll2.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.scroll2.setWidgetResizable(True)
+        self.scroll2.setWidget(self.lbl)
+
+        # Search bar.
+        self.searchbar = QLineEdit()
+        self.btn_install = QPushButton("Install")
+        self.btn_install.setCheckable(False)
+        self.btn_install.clicked.connect(self.install_tasks)
+
+        # Add the items to VBoxLayout (applied to container widget)
+        # which encompasses the whole window.
+        container = QWidget()
+        containerLayout = QVBoxLayout()
+        #containerLayout.addWidget(self.searchbar)
+        containerLayout.addWidget(self.btn_install)
+        containerLayout.addWidget(self.scroll,70)
+        containerLayout.addWidget(self.scroll2,30)
+        #containerLayout.addWidget(self.lbl,30)
+
+        container.setLayout(containerLayout)
+        self.setCentralWidget(container)
+
+        self.setGeometry(600, 100, 900, 600)
+        self.setWindowTitle('Qubes Task Manager')
+        self.setWindowIcon = QtGui.QIcon.fromTheme("qubes-manager")
+    
+
+    def details_clicked(widget,state):
+        sending_widget = widget.sender()
+        name = (sending_widget.accessibleName())
+        desc = outputs[name]['description']
+        w.lbl.setText(desc)
+
+    def install_tasks(widget,state):
+
+
+app = QtWidgets.QApplication(sys.argv)
+w = MainWindow()
+w.show()
+sys.exit(app.exec_())
