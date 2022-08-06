@@ -100,8 +100,8 @@ class MainWindow(QMainWindow):
         containerLayout = QVBoxLayout()
         #containerLayout.addWidget(self.searchbar)
         containerLayout.addWidget(self.btn_install)
-        containerLayout.addWidget(self.scroll,70)
-        containerLayout.addWidget(self.scroll2,30)
+        containerLayout.addWidget(self.scroll,60)
+        containerLayout.addWidget(self.scroll2,40)
 
         container.setLayout(containerLayout)
         self.setCentralWidget(container)
