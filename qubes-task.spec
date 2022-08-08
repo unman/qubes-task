@@ -1,4 +1,4 @@
-Name:		  qubes-task
+Name:		  3isec-qubes-task-manager
 Version:	0.1
 Release:	1
 Summary:	Qubes task manager
