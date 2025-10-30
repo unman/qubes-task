@@ -1,12 +1,12 @@
-Name:		  3isec-qubes-task-manager
-Version:	0.2
-Release:	1
-Summary:	Qubes task manager
+Name:     3isec-qubes-task-manager
+Version:  0.3
+Release:  1
+Summary:  Qubes task manager
 
-Group:		Qubes
-Vendor:		Invisible Things Lab
-License:	GPL
-URL:		  http://www.qubes-os.org
+Group:    Qubes
+Vendor:   Invisible Things Lab
+License:  GPL
+URL:      http://www.qubes-os.org
 
 Source0:  qubes-task
 
@@ -22,10 +22,10 @@ Qubes task manager
 %install
 rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/bin
-mkdir -p %{buildroot}/usr/lib/python3.11/site-packages/qubesadmin/tools
-mkdir -p %{buildroot}/usr/lib/python3.11/site-packages/qubesadmin/tools/__pycache__
+mkdir -p %{buildroot}/usr/lib/python3.13/site-packages/qubesadmin/tools
+mkdir -p %{buildroot}/usr/lib/python3.13/site-packages/qubesadmin/tools/__pycache__
 cp -rv %{SOURCE0}/qubes-task*  %{buildroot}/usr/bin
-cp %{SOURCE0}/qubes_task.py %{buildroot}/usr/lib/python3.11/site-packages/qubesadmin/tools
+cp %{SOURCE0}/qubes_task.py %{buildroot}/usr/lib/python3.13/site-packages/qubesadmin/tools
 
 
 %post
@@ -40,5 +40,5 @@ cp %{SOURCE0}/qubes_task.py %{buildroot}/usr/lib/python3.11/site-packages/qubesa
 %defattr(-,root,root,-)
 /usr/bin/qubes-task
 /usr/bin/qubes-task-gui
-/usr/lib/python3.11/site-packages/qubesadmin/tools/qubes_task.py
-/usr/lib/python3.11/site-packages/qubesadmin/tools/__pycache__/qubes_task.cpython-311.*
+/usr/lib/python3.13/site-packages/qubesadmin/tools/qubes_task.py
+/usr/lib/python3.13/site-packages/qubesadmin/tools/__pycache__/qubes_task.cpython-313.*
