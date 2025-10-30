@@ -3,14 +3,14 @@
 import subprocess
 import sys
 
-from PyQt5 import QtWidgets, QtGui, uic
-from PyQt5.QtWidgets import (
+from PyQt6 import QtWidgets, QtGui, uic
+from PyQt6.QtWidgets import (
     QWidget, QApplication, QButtonGroup, QHBoxLayout, QVBoxLayout,
     QCheckBox, QLabel, QLineEdit, QMainWindow, QPushButton, QScrollArea, 
     QSizePolicy, QSpacerItem )
 
-from PyQt5.QtCore import QObject, Qt, pyqtSignal, QProcess
-from PyQt5.QtGui import QPainter, QFont, QColor, QPen
+from PyQt6.QtCore import QObject, Qt, pyqtSignal, QProcess
+from PyQt6.QtGui import QPainter, QFont, QColor, QPen
 #from row import TaskRowWidget
 from qubesadmin.tools.qubes_task import *
 from qubesadmin.tools.qvm_template import Template as Task
@@ -69,22 +69,22 @@ class MainWindow(QMainWindow):
             self.tasksLayout.addWidget(item)
             self.widgets.append(item)
 
-        spacer = QSpacerItem(1, 1, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        spacer = QSpacerItem(1, 1 )
         self.tasksLayout.addItem(spacer)
         self.tasks.setLayout(self.tasksLayout)
         self.lbl = QLabel(""" Description
 """)
-        self.lbl.setAlignment(Qt.AlignTop)
+        #self.lbl.setAlignment(Qt.AlignTop)
         # Scroll Area Properties.
         self.scroll = QScrollArea()
-        self.scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-        self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        #self.scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        #self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.scroll.setWidgetResizable(True)
         self.scroll.setWidget(self.tasks)
 
         self.scroll2 = QScrollArea()
-        self.scroll2.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-        self.scroll2.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        #self.scroll2.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        #self.scroll2.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.scroll2.setWidgetResizable(True)
         self.scroll2.setWidget(self.lbl)
 
@@ -135,5 +135,5 @@ class MainWindow(QMainWindow):
 app = QtWidgets.QApplication(sys.argv)
 w = MainWindow()
 w.show()
-sys.exit(app.exec_())
+sys.exit(app.exec())
 
