@@ -17,7 +17,6 @@ class Worker(QObject):
     def run(self):
         try:
             available_cmd = ['sudo', 'qubes-dom0-update', '--action=list', '3isec-qubes*']
-            #available_cmd = ['sudo', 'qubes-dom0-update', '--action=list', 'ruby*']
             available_result = subprocess.run(available_cmd, capture_output=True, text=True)
             if available_result.returncode == 0:
                 packages = available_result.stdout.strip().split('\n')[0:-1]
@@ -55,7 +54,6 @@ class QubesPackageManager(QMainWindow):
         self.package_table.verticalHeader().setVisible(False)
         self.package_table.setColumnWidth(0, 300)
         self.package_table.setColumnWidth(1, 100)
-        #self.package_table.setColumnWidth(2, 390)
         main_layout.addWidget(self.package_table)
 
         QTimer.singleShot(10, self.populate_package_list)
@@ -101,16 +99,15 @@ class QubesPackageManager(QMainWindow):
                 status_item.setFlags(status_item.flags() & ~Qt.ItemFlag.ItemIsEditable & ~Qt.ItemFlag.ItemIsSelectable) 
                 self.package_table.setItem(row, 1, status_item)
     
-        #self.package_table.resizeColumnsToContents()
         self.statusBar().showMessage(f"Retrieved {len(packages)-2} packages", 5000)
 
         description_item = QTableWidgetItem("Description test")
         description_item.setFlags(package_item.flags() & ~Qt.ItemFlag.ItemIsEditable & ~Qt.ItemFlag.ItemIsSelectable) 
 
-    def close_application(self): 
-        if self.worker_thread.isRunning():
-            self.worker_thread.quit()
-        QApplication.quit()
+    #def close_application(self): 
+        #if self.worker_thread.isRunning():
+            #self.worker_thread.quit()
+        #QApplication.quit()
 
     def handle_error(self, message):
         self.statusBar().showMessage(message, 5000)
