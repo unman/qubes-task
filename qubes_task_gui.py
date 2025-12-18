@@ -64,13 +64,13 @@ class QubesPackageManager(QMainWindow):
         self.progress_dialog.setWindowTitle("Tasks")
         self.progress_dialog.setValue(0)
         self.progress_dialog.show()
-        #self.progress_dialog.canceled.connect(self.close_application)
+        self.progress_dialog.canceled.connect(self.cancel_and_quit)
 
         # Create a worker thread
         self.worker_thread = WorkerThread()
         self.worker_thread.worker.packagesRetrieved.connect(self.update_package_list)
         self.worker_thread.worker.errorOccurred.connect(self.handle_error)
-        self.worker_thread.finished.connect(self.progress_dialog.close)
+        self.worker_thread.finished.connect(self.progress_dialog.hide)
         self.worker_thread.finished.connect(self.worker_thread.deleteLater)
 
         self.worker_thread.start()
@@ -104,10 +104,13 @@ class QubesPackageManager(QMainWindow):
         description_item = QTableWidgetItem("Description test")
         description_item.setFlags(package_item.flags() & ~Qt.ItemFlag.ItemIsEditable & ~Qt.ItemFlag.ItemIsSelectable) 
 
-    #def close_application(self): 
-        #if self.worker_thread.isRunning():
-            #self.worker_thread.quit()
-        #QApplication.quit()
+    def cancel_and_quit(self):
+        if hasattr(self, "progress"):
+            self.progress.close()
+        if hasattr(self, "worker_thread"):
+            self.worker_thread.terminate()
+            self.worker_thread.wait()
+        QApplication.instance().quit()
 
     def handle_error(self, message):
         self.statusBar().showMessage(message, 5000)
