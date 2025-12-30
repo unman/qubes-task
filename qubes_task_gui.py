@@ -3,15 +3,17 @@
 import sys
 import subprocess
 from PyQt6.QtWidgets import (
-    QApplication, QMainWindow, QVBoxLayout, 
-    QTableWidget, QTableWidgetItem, 
-    QWidget, QProgressDialog
+    QApplication, QMainWindow, QProgressDialog,
+    QMessageBox,
+    QPushButton, QTableWidget, QTableWidgetItem,
+    QTextEdit, QVBoxLayout, QWidget
 )
 from PyQt6.QtCore import Qt, pyqtSignal, QObject, QThread, QTimer
 
 class Worker(QObject):
     finished = pyqtSignal()
     packagesRetrieved = pyqtSignal(list)
+    packagesInstalled = pyqtSignal(list)
     errorOccurred = pyqtSignal(str)
 
     def run(self):
@@ -28,6 +30,19 @@ class Worker(QObject):
         finally:
             self.finished.emit()
 
+    def install(self, package):
+        try:
+            available_cmd = ['sudo', 'qubes-dom0-update', '-y', package ]
+            available_result = subprocess.run(available_cmd, capture_output=True, text=True)
+            if available_result.returncode == 0:
+                self.packagesInstalled.emit(packages)
+            else:
+                self.errorOccurred.emit("Failed to install packages")
+        except Exception as e:
+            self.errorOccurred.emit(f"Error: {str(e)}")
+        finally:
+            self.finished.emit()
+
 class WorkerThread(QThread):
     def __init__(self):
         super().__init__()
@@ -35,6 +50,16 @@ class WorkerThread(QThread):
 
     def run(self):
         self.worker.run()
+
+    def install(self, package):
+        self.worker.install(package)
+        self.start()
+
+class ScrollableTextEdit(QTextEdit):
+    def __init__(self, text):
+        super().__init__()
+        self.setText(text)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
 
 class QubesPackageManager(QMainWindow):
     def __init__(self):
@@ -55,18 +80,23 @@ class QubesPackageManager(QMainWindow):
         self.package_table.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self.package_table.setColumnWidth(0, 300)
         self.package_table.setColumnWidth(1, 100)
+
+        self.install_dialog = QMessageBox(self)
+        self.install_dialog.setWindowTitle("Install this package?")
+        self.install_dialog.setText("Do you want to install this package?")
+        self.install_dialog.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+
+        self.install_dialog.setVisible(False)
+
         main_layout.addWidget(self.package_table)
 
         self.package_table.cellClicked.connect(self.show_package_info)
+
         QTimer.singleShot(10, self.populate_package_list)
 
     def init_description_column(self, pkg_count: int):
-        placeholder = QTableWidgetItem("")
-        placeholder.setFlags(placeholder.flags() & ~Qt.ItemFlag.ItemIsEditable)
-        placeholder.setTextAlignment(
-            Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft
-        )
-        self.package_table.setItem(0, 2, placeholder)
+        description_text = ScrollableTextEdit(f"")
+        self.package_table.setCellWidget(0, 2, description_text)
 
         if pkg_count > 1:
             self.package_table.setSpan(0, 2, pkg_count,  1)
@@ -79,7 +109,6 @@ class QubesPackageManager(QMainWindow):
         self.progress_dialog.show()
         self.progress_dialog.canceled.connect(self.cancel_and_quit)
 
-        # Create a worker thread
         self.worker_thread = WorkerThread()
         self.worker_thread.worker.packagesRetrieved.connect(self.update_package_list)
         self.worker_thread.worker.errorOccurred.connect(self.handle_error)
@@ -115,10 +144,26 @@ class QubesPackageManager(QMainWindow):
 
         self.init_description_column(pkg_count)
     
-        self.statusBar().showMessage(f"Retrieved {len(packages)-2} packages", 5000)
+        self.statusBar().showMessage(f"Retrieved details of {len(packages)-2} packages", 5000)
 
         description_item = QTableWidgetItem("")
         description_item.setFlags(package_item.flags() & ~Qt.ItemFlag.ItemIsEditable & ~Qt.ItemFlag.ItemIsSelectable) 
+
+    def task_install(self, package):
+        self.progress_dialog = QProgressDialog("Installing package", "Cancel", 0, 0, self)
+        self.progress_dialog.setModal(True)
+        self.progress_dialog.setWindowTitle("Install")
+        self.progress_dialog.setValue(0)
+        self.progress_dialog.show()
+
+        self.worker_thread = WorkerThread()
+        self.worker_thread.worker.packagesInstalled.connect(self.populate_package_list)
+        self.worker_thread.worker.errorOccurred.connect(self.handle_error)
+        self.worker_thread.finished.connect(self.progress_dialog.hide)
+        self.worker_thread.finished.connect(self.worker_thread.deleteLater)
+
+        self.worker_thread.install(package)
+        #self.worker_thread.start()
 
     def cancel_and_quit(self):
         if hasattr(self, "progress"):
@@ -142,7 +187,7 @@ class QubesPackageManager(QMainWindow):
                         for description_line in lines[lines.index(line)+1:]:
                             description_lines.append(description_line.strip())
                         description = '\n '.join(description_lines)
-                return f"Summary: {summary}\nDescription: {description}"
+                return f"Summary: {summary}\n\nDescription: {description}"
             else:
                 return f"No information"
         except Exception as e:
@@ -155,8 +200,14 @@ class QubesPackageManager(QMainWindow):
                 description = self.task_info(selected_package).strip()
             else:
                 description = ""
-            description_item = QTableWidgetItem(description)
-            self.package_table.setItem(0, 2, description_item)
+            self.package_table.cellWidget(0, 2).setText(f"{description}")
+        if self.package_table.item(row, 0) is not None:
+            if column == 0 and self.package_table.item(row, 1).text() == 'Available':
+                self.install_dialog.setVisible(True)
+                reply = self.install_dialog.exec()
+                self.install_dialog.setVisible(False)
+                if reply == QMessageBox.StandardButton.Yes:
+                    self.task_install(selected_package)
 
     def handle_error(self, message):
         self.statusBar().showMessage(message, 5000)
