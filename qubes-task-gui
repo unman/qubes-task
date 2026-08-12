@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 
 import sys
 import subprocess
@@ -18,8 +18,8 @@ class Worker(QObject):
 
     def run(self):
         try:
-            available_cmd = ['sudo', 'qubes-dom0-update', '--action=list', '3isec-qubes*']
-            available_result = subprocess.run(available_cmd, capture_output=True, text=True)
+            available_cmd = ' sudo qubes-dom0-update --action=list "3isec-qubes*" ' 
+            available_result = subprocess.run(available_cmd, capture_output=True, text=True, shell=True)
             if available_result.returncode == 0:
                 packages = available_result.stdout.strip().split('\n')[0:-1]
                 self.packagesRetrieved.emit(packages)
@@ -174,24 +174,14 @@ class QubesPackageManager(QMainWindow):
         QApplication.instance().quit()
 
     def task_info(self, package):
+        description_file = f"/usr/share/qubes-task/{package}.txt"
         try:
-            cmd = ['rpm','-qi',package]
-            result = subprocess.run(cmd, capture_output=True, text=True)
-            if result.returncode == 0:
-                lines = result.stdout.split('\n')
-                for line in lines:
-                    if line.startswith('Summary'):
-                        summary = line.split(':', 1)[1].strip()
-                    elif line.startswith('Description'):
-                        description_lines = []
-                        for description_line in lines[lines.index(line)+1:]:
-                            description_lines.append(description_line.strip())
-                        description = '\n '.join(description_lines)
-                return f"Summary: {summary}\n\nDescription: {description}"
-            else:
-                return f"No information"
+            with open(description_file, 'r') as f:
+                return f.read().strip()
+        except FileNotFoundError:
+                return f"No information on {package}"
         except Exception as e:
-            return f"Failed to get information: {e}"
+            return f"Failed to get description: {e}"
 
     def show_package_info(self, row, column):
         if column == 0:
