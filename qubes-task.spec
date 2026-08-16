@@ -45,7 +45,7 @@ cp %{SOURCE0}/desc/* %{buildroot}/usr/share/qubes-task
 /usr/share/qubes-task/3isec-qubes-git.txt
 /usr/share/qubes-task/3isec-qubes-gpg.txt
 /usr/share/qubes-task/3isec-qubes-mirage-firewall.txt
--usr/share/qubes-task/3isec-qubes-monitor.txt
+/usr/share/qubes-task/3isec-qubes-monitor.txt
 /usr/share/qubes-task/3isec-qubes-mullvad-vpn.txt
 /usr/share/qubes-task/3isec-qubes-sys-multimedia.txt
 /usr/share/qubes-task/3isec-qubes-mutt.txt
