@@ -1,0 +1,1 @@
+Salt state for qubes-builder template and qube

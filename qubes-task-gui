@@ -125,9 +125,9 @@ class QubesPackageManager(QMainWindow):
         for row, package in enumerate(packages):
             if package.strip():
                 trimmed_package = package.split('.')[0]
-                if 'Installed packages' in trimmed_package:
+                if 'installed packages' in trimmed_package.lower():
                     trimmed_package = "Installed packages"
-                if 'Available packages' in trimmed_package:
+                if 'available packages' in trimmed_package.lower():
                     trimmed_package = "Available packages"
                     status = "Available"
                     status_item = QTableWidgetItem(status)

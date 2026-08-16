@@ -1,0 +1,8 @@
+This package creates a template configured with a range of useful software, of particular use to terminal users.
+The template is based on the debian-13-xfce template.
+The new template is set as the default template and as template for the global disposable template.
+
+Removing this package does NOT revert these changes.
+It only removes the salt files.
+You must manually set another template as the default using
+qubes-global-settings, and qubes-template-manager.

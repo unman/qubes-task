@@ -1,0 +1,7 @@
+This package creates a template with dnscrypt-proxy installed.
+The template is based on the debian-13-minimal template.
+A template based qube, sys-dnscrypt, is created with a vanilla version of dnscrypt-proxy installed.
+The new qube is configured to drop in to the Qubes networking model.
+It supports qubes-firewall.
+However, NO DNS traffic is forwarded, and all such traffic is passed through dnscrypt-proxy.
+The installation follows the documentation but the service must be manually started.

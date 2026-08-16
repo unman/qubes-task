@@ -1,0 +1,4 @@
+This package creates a template with thunar installed, for use by offline storage qubes.
+The template is based on the debian-13-minimal template.
+
+Removing this package only removes the salt files, not the template.

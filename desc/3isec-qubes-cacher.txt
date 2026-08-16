@@ -1,0 +1,53 @@
+This package provides a caching proxy qube, named cacher.
+A caching proxy stores downloaded packages, so that you need only download
+a package once for it to be used when updating many templates.
+The proxy is preconfigured to work out of the box for Debian, Ubuntu,
+Arch, BlackArch, Qubes, and Fedora templates.
+
+When you install this package your Qubes system will be altered to use
+the proxy by default.
+This is done with an entry in /etc/qubes/policy.d/50-config-updates.policy
+in Qubes 4.2
+If you want to change the proxy setting for some/all templates, edit
+that file, or use the GUI global settings tool.
+
+So that you can use https:// in your repository definitions, the entries
+will be changed in the templates.
+ https:// becomes http://HTTPS///
+This is so that the request to the proxy is plain text, and the proxy 
+will then make the request via https
+This change will be done automatically for every template that exists
+when you install this package. NOTE THAT THIS REQUIRES SALTING OF EVERY
+TEMPLATE - WHONIX TEMPLATES WILL NOT BE CHANGED.
+
+If you install a new template, you must make this configuration change. 
+In dom0 run:
+ qubesctl --skip-dom0 --targets=TEMPLATE state.apply cacher.change_templates  
+replacing TEMPLATE with the name of the new template. 
+
+If you want to use the standard proxy, you have to revert this change,
+as well as editing the policy file.
+In dom0 run:
+ qubesctl --skip-dom0 --targets=TEMPLATE state.apply cacher.restore_templates  
+replacing TEMPLATE with the name of the new template. 
+
+When this package is installed it will attempt to rewrite repository
+definitions in ALL templates.
+NOTE THAT THIS REQUIRES STARTING AND SALTING OF EVERY TEMPLATE.
+This includes templates that are not under salt control, like Windows
+templates.
+You must manually shutdown those templates.
+
+No changes are made to Whonix templates, and updates to those templates
+will not be cached.
+
+If you want updates to run via Tor, set the netvm for the cacher qube
+to be a Tor proxy, like sys-whonix.
+
+Because the cacher qube is listening on port 8082, you can use it from
+non-template qubes and qubes that do not have a working qrexec. Use
+the native configuration to set the update proxy using the IP address
+of cacher.
+
+A pillar is created to hold the caching qube.
+This can be referenced from other salt states as needed.

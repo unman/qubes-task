@@ -1,0 +1,5 @@
+This package creates a template cloned from debian-13-minimal which can
+be used as the basis for admin qubes. A default sys-admin is created.
+A policy file is created which allows sys-admin to control only qubes
+created by it - the file contains a commented section for extending
+administration to all qubes.

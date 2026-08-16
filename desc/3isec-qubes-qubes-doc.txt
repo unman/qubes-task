@@ -1,0 +1,4 @@
+These salt files can be used to set-up a template for building the Qubes website and documentation.
+The template is a clone of the fedora-44 template.
+A qubes-doc qube is created and configured to use git and split-gpg.
+Helper scripts are included to aid building.

@@ -1,0 +1,6 @@
+This package provides a central git qube, named sys-git.
+By default the qube has no netvm, but you can set one if you wish.
+
+Some configuration is needed.
+Repositories must be created under /home/user/repos in sys-git, and
+repository names must be common between sys-git and client qubes.

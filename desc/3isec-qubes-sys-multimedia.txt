@@ -1,0 +1,22 @@
+ This package sets up qubes to work mith multimedia files in Qubes.
+ By default a qube named "media" is created, and configured so that any
+ multimedia files are opened in a named disposable called "multimedia".
+ This provides some measure of protection when working with untrusted files.
+
+The media qube is offline by default.
+The multimedia disposable is offline by default.
+You can change this if you wish, but be aware that this may result in
+data leakage.
+
+Organise and store media files in the media qube. The media qube has thunar
+installed and is based on a minimal template. This reduces the risk of opening
+a file in the storage qube itself.
+Opening a file in the media qube will open the multimedia disposable and play
+the file there.
+The multimedia disposable will shut down automatically when all active windows
+are closed.
+You can also use the multimedia disposable from any other qube, or use the
+disposable template to create more disposables with different settings -
+perhaps online, or restricted to certain IP addresses.
+Access to the multimedia qube is controlled from the policy file in
+/etc/qubes/policy.d/30-user.policy
