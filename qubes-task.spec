@@ -22,9 +22,9 @@ Qubes task manager
 %install
 rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/bin
-mkdir -p $%{buildroot}/usr/share/qubes-task
+mkdir -p %{buildroot}/usr/share/qubes-task
 cp %{SOURCE0}/qubes-task*  %{buildroot}/usr/bin
-cp %{SOURCE0}/desc/* $%{buildroot}/usr/share/qubes-task
+cp %{SOURCE0}/desc/* %{buildroot}/usr/share/qubes-task
 
 %post
 
